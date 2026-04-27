@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cynergy Bank — ISA Early Breakage Request</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a2240;
+    --navy-mid: #123668;
+    --teal: #00857c;
+    --teal-light: #00a898;
+    --gold: #c8a96e;
+    --off-white: #f7f6f3;
+    --light-grey: #eceae5;
+    --mid-grey: #9b9790;
+    --text: #1a1a1a;
+    --danger: #c0392b;
+    --danger-bg: #fdf2f2;
+    --warning: #c87d0e;
+    --warning-bg: #fef9f0;
+    --success: #00857c;
+    --success-bg: #eaf6f4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  nav {
+    background: var(--navy);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+
+  .logo-mark { width: 36px; height: 36px; }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: white;
+    letter-spacing: 0.02em;
+  }
+
+  .logo-text span { color: var(--gold); }
+
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+
+  .nav-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color .2s;
+  }
+
+  .nav-links a:hover { color: white; }
+
+  .progress-bar {
+    background: var(--navy-mid);
+    padding: 0 40px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .progress-step.done { color: var(--teal-light); }
+  .progress-step.active { color: white; font-weight: 500; }
+
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    background: rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+
+  .progress-step.done .step-num { background: var(--teal); color: white; }
+  .progress-step.active .step-num { background: var(--gold); color: var(--navy); font-weight: 600; }
+
+  .step-divider {
+    width: 32px; height: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 8px;
+  }
+
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(10,34,64,0.08);
+  }
+
+  .form-header {
+    background: var(--navy);
+    padding: 28px 32px;
+  }
+
+  .form-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: white;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .form-header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+  }
+
+  .application-ref {
+    display: inline-block;
+    margin-top: 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 2px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  .penalty-banner {
+    margin: 0;
+    padding: 12px 32px;
+    font-size: 13px;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .penalty-banner.danger {
+    background: var(--danger-bg);
+    border-left: 3px solid var(--danger);
+    color: var(--danger);
+  }
+
+  .penalty-banner.success {
+    background: var(--success-bg);
+    border-left: 3px solid var(--teal);
+    color: var(--teal);
+  }
+
+  .penalty-banner.show { display: flex; }
+
+  .banner-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .form-body { padding: 32px; }
+
+  .form-section {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--mid-grey);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.span2 { grid-column: span 2; }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mid-grey);
+    letter-spacing: 0.03em;
+  }
+
+  input, select {
+    border: 1px solid var(--light-grey);
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: white;
+    transition: border-color .2s;
+    appearance: none;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  input[readonly] { background: var(--off-white); }
+
+  .balance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .balance-badge {
+    border-radius: 2px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .balance-badge .bal-label {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--mid-grey);
+  }
+
+  .balance-badge .bal-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--navy);
+  }
+
+  .balance-badge { background: var(--off-white); border: 1px solid var(--light-grey); }
+  .balance-badge.highlight { background: var(--success-bg); border-color: var(--teal); }
+  .balance-badge.highlight .bal-value { color: var(--teal); }
+  .balance-badge.warn { background: var(--warning-bg); border-color: var(--warning); }
+  .balance-badge.warn .bal-value { color: var(--warning); }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-info strong {
+    font-size: 13px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .toggle-info span { font-size: 12px; color: var(--mid-grey); }
+
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--light-grey);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--teal); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+  .form-footer {
+    padding: 24px 32px;
+    background: var(--off-white);
+    border-top: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .submit-note {
+    font-size: 12px;
+    color: var(--mid-grey);
+    line-height: 1.5;
+    max-width: 260px;
+  }
+
+  .btn-submit {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .btn-submit:hover { background: var(--navy-mid); }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled { background: var(--mid-grey); cursor: not-allowed; }
+
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  .sidebar-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(10,34,64,0.06);
+  }
+
+  .sidebar-card-header {
+    background: var(--navy);
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-card-body { padding: 20px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  .info-row:last-child { border-bottom: none; }
+  .info-row .key { color: var(--mid-grey); flex-shrink: 0; }
+  .info-row .val { font-weight: 500; text-align: right; }
+  .info-row .val.green { color: var(--teal); }
+  .info-row .val.red { color: var(--danger); }
+  .info-row .val.amber { color: var(--warning); }
+
+  .result-panel {
+    display: none;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(10,34,64,0.06);
+    animation: slideIn .3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-panel.show { display: block; }
+
+  .result-header {
+    padding: 16px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-header.stp { background: var(--success-bg); color: var(--teal); }
+  .result-header.penalty { background: var(--warning-bg); color: var(--warning); }
+
+  .result-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  .result-body { padding: 16px 20px; font-size: 13px; line-height: 1.6; }
+  .result-body strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mid-grey);
+  }
+
+  .cognigy-tag {
+    display: inline-block;
+    background: var(--navy);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .loading-dots {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .loading-dots span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: dot .8s infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: .15s; }
+  .loading-dots span:nth-child(3) { animation-delay: .3s; }
+
+  @keyframes dot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="18" fill="#00857c"/>
+      <path d="M10 18c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M14 18c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="18" cy="18" r="2" fill="white"/>
+    </svg>
+    <span class="logo-text">Cynergy <span>Bank</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#">Personal</a></li>
+    <li><a href="#">ISA &amp; Savings</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="progress-bar">
+  <div class="progress-step done">
+    <div class="step-num">✓</div>
+    <span>Account selection</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="progress-step done">
+    <div class="step-num">✓</div>
+    <span>Identity confirmed</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="progress-step active">
+    <div class="step-num">3</div>
+    <span>Breakage request</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <div class="form-card">
+    <div class="form-header">
+      <h1>ISA early breakage request</h1>
+      <p>Please review your account details and confirm your breakage request below.</p>
+      <div class="application-ref">ISA-00047832 &nbsp;·&nbsp; Fixed Rate ISA (FRISA)</div>
+    </div>
+
+    <div id="penalty-banner" class="penalty-banner danger">
+      <div class="banner-dot"></div>
+      <span id="penalty-banner-text">180 day interest penalty applies — estimated charge: £342.18</span>
+    </div>
+
+    <div id="no-penalty-banner" class="penalty-banner success">
+      <div class="banner-dot"></div>
+      No penalty applies — within 14 day cooling off period
+    </div>
+
+    <div class="form-body">
+
+      <div class="form-section">
+        <div class="section-title">Account holder</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Account name</label>
+            <input type="text" value="A P Martin" readonly>
+          </div>
+          <div class="field">
+            <label>Customer ID</label>
+            <input type="text" value="CIF-88421603" readonly>
+          </div>
+          <div class="field">
+            <label>Email address</label>
+            <input type="text" value="ap.martin@email.co.uk" readonly>
+          </div>
+          <div class="field">
+            <label>Mobile</label>
+            <input type="text" value="07597 964061" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">ISA account details</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Product</label>
+            <input type="text" value="Fixed Rate ISA (FRISA)" readonly>
+          </div>
+          <div class="field">
+            <label>Account number</label>
+            <input type="text" value="ISA-00047832" readonly>
+          </div>
+          <div class="field">
+            <label>Opened date</label>
+            <input type="text" value="14 June 2023" readonly>
+          </div>
+          <div class="field">
+            <label>Maturity date</label>
+            <input type="text" value="14 June 2026 (49 days)" readonly>
+          </div>
+          <div class="field">
+            <label>Interest rate</label>
+            <input type="text" value="4.35% AER" readonly>
+          </div>
+          <div class="field">
+            <label>Term</label>
+            <input type="text" value="3 Year Fixed" readonly>
+          </div>
+        </div>
+
+        <div class="balance-grid" style="margin-top:16px">
+          <div class="balance-badge highlight">
+            <span class="bal-label">Current balance</span>
+            <span class="bal-value">£14,250.00</span>
+          </div>
+          <div class="balance-badge">
+            <span class="bal-label">Interest earned</span>
+            <span class="bal-value">£1,243.50</span>
+          </div>
+          <div class="balance-badge warn" id="penalty-badge">
+            <span class="bal-label">Est. penalty</span>
+            <span class="bal-value" id="penalty-value">£342.18</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Breakage reason</div>
+        <div class="field-grid full">
+          <div class="field">
+            <label>Reason for early breakage</label>
+            <select id="breakage-reason">
+              <option value="financial_need">Financial need — require access to funds</option>
+              <option value="better_rate">Found a better rate elsewhere</option>
+              <option value="changed_circumstances">Change in personal circumstances</option>
+              <option value="maturity_early">Would like to close ahead of maturity</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Demo controls — breakage scenarios</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Within 14 day cooling off period</strong>
+            <span>Simulates breakage request within 14 days of opening — no penalty applies</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-cooling" onchange="updateScenario()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-footer">
+      <p class="submit-note">By submitting, this breakage request will be reviewed by Cynergy Bank's ISA processing team.</p>
+      <button class="btn-submit" id="submitBtn" onclick="submitBreakage()">Submit breakage request</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Request summary</div>
+      <div class="sidebar-card-body">
+        <div class="info-row">
+          <span class="key">Case ref</span>
+          <span class="val">ISA-00047832</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Product</span>
+          <span class="val">FRISA</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Account holder</span>
+          <span class="val">A P Martin</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Balance</span>
+          <span class="val">£14,250.00</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Penalty applicable</span>
+          <span class="val red" id="sidebar-penalty">Yes — £342.18</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Processing</span>
+          <span class="val" id="sidebar-processing">ISA team review</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card result-panel" id="result-panel">
+      <div class="result-header" id="result-header">
+        <div class="result-dot"></div>
+        <span id="result-title"></span>
+      </div>
+      <div class="result-body" id="result-body"></div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Important information</div>
+      <div class="sidebar-card-body">
+        <p style="font-size:12px;color:var(--mid-grey);line-height:1.6">Early breakage of a fixed rate ISA may result in an interest penalty. You will receive written confirmation of the breakage terms before any funds are released.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const COGNIGY_URL = "YOUR_COGNIGY_ENDPOINT_HERE";
+
+  function updateScenario() {
+    const cooling = document.getElementById('toggle-cooling').checked;
+
+    document.getElementById('penalty-banner').classList.toggle('show', !cooling);
+    document.getElementById('no-penalty-banner').classList.toggle('show', cooling);
+
+    const penaltyBadge = document.getElementById('penalty-badge');
+    const penaltyValue = document.getElementById('penalty-value');
+
+    if (cooling) {
+      penaltyBadge.className = 'balance-badge highlight';
+      penaltyValue.textContent = '£0.00';
+      document.getElementById('sidebar-penalty').textContent = 'No — within cooling off';
+      document.getElementById('sidebar-penalty').className = 'val green';
+      document.getElementById('sidebar-processing').textContent = 'No penalty — auto-process';
+    } else {
+      penaltyBadge.className = 'balance-badge warn';
+      penaltyValue.textContent = '£342.18';
+      document.getElementById('sidebar-penalty').textContent = 'Yes — £342.18';
+      document.getElementById('sidebar-penalty').className = 'val red';
+      document.getElementById('sidebar-processing').textContent = 'ISA team review';
+    }
+  }
+
+  async function submitBreakage() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+
+    const cooling = document.getElementById('toggle-cooling').checked;
+    const reason = document.getElementById('breakage-reason').value;
+
+    const payload = {
+      userId: "ap.martin@email.co.uk",
+      sessionId: "ISA-00047832",
+      text: "isa_breakage_request",
+      data: {
+        triggerType: "isa_breakage",
+        caseReference: "ISA-00047832",
+        accountHolder: "A P Martin",
+        customerId: "CIF-88421603",
+        product: "FRISA",
+        balance: 14250.00,
+        interestEarned: 1243.50,
+        openedDate: "14 June 2023",
+        maturityDate: "14 June 2026",
+        withinCoolingOffPeriod: cooling,
+        penaltyApplicable: !cooling,
+        estimatedPenalty: cooling ? 0 : 342.18,
+        breakageReason: reason,
+        straightThroughEligible: cooling
+      }
+    };
+
+    const panel = document.getElementById('result-panel');
+    const header = document.getElementById('result-header');
+    const title = document.getElementById('result-title');
+    const body = document.getElementById('result-body');
+
+    try {
+      await fetch(COGNIGY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      panel.classList.add('show');
+
+      if (cooling) {
+        header.className = 'result-header stp';
+        title.textContent = 'No penalty — request approved';
+        body.innerHTML = `
+          <div class="cognigy-tag">COGNIGY</div>
+          <strong>Decision</strong>
+          Within 14 day cooling off period — no penalty applies. Breakage approved automatically.
+          <br><br>
+          <strong>Next step</strong>
+          Funds will be returned to nominated account within 3 working days. Confirmation letter dispatched.
+        `;
+      } else {
+        header.className = 'result-header penalty';
+        title.textContent = 'Penalty applies — routed for review';
+        body.innerHTML = `
+          <div class="cognigy-tag">COGNIGY</div>
+          <strong>Decision</strong>
+          Outside cooling off period. 180 day interest penalty of £342.18 applies.
+          <br><br>
+          <strong>Cognigy action</strong>
+          Case routed to ISA processing queue. Agent will contact customer to confirm acceptance of penalty terms before processing.
+          <br><br>
+          <strong>Net amount</strong>
+          £14,250.00 − £342.18 = £13,907.82 estimated payout
+        `;
+      }
+
+    } catch(e) {
+      panel.classList.add('show');
+      header.className = 'result-header stp';
+      title.textContent = 'Request submitted';
+      body.innerHTML = `
+        <div class="cognigy-tag">COGNIGY</div>
+        <strong>Note</strong>
+        Update COGNIGY_URL in script to connect live endpoint.
+        <br><br>
+        <strong>Payload prepared</strong>
+        withinCoolingOff: ${cooling}<br>
+        penaltyApplicable: ${!cooling}<br>
+        estimatedPenalty: £${cooling ? '0.00' : '342.18'}<br>
+        straightThrough: ${cooling}
+      `;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Submit breakage request';
+  }
+
+  // Show penalty banner by default (outside cooling off)
+  document.getElementById('penalty-banner').classList.add('show');
+</script>
+</body>
+</html>
