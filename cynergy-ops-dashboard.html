@@ -1121,13 +1121,14 @@ nav {
 
     for (const sel of selectors) {
       try {
-        const found = document.querySelector(sel);
-        if (
-          found &&
-          found !== container &&
-          !container.contains(found) &&
-          !found.contains(container)
-        ) {
+        const all = document.querySelectorAll(sel);
+        for (const found of all) {
+          // Skip our own container and anything with id webchat-container
+          if (!found) continue;
+          if (found.id === 'webchat-container') continue;
+          if (found === container) continue;
+          if (container.contains(found)) continue;
+          if (found.contains(container)) continue;
           container.appendChild(found);
           found.style.cssText = 'position:relative!important;width:100%!important;height:100%!important;bottom:auto!important;right:auto!important;';
           return;
