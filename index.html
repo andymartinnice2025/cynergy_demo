@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cynergy Bank — NICE Cognigy Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a2240;
+    --navy-mid: #123668;
+    --teal: #00857c;
+    --teal-light: #00a898;
+    --gold: #c8a96e;
+    --off-white: #f7f6f3;
+    --light-grey: #eceae5;
+    --mid-grey: #9b9790;
+    --text: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  nav {
+    background: var(--navy);
+    padding: 0 48px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+
+  .logo-mark { width: 36px; height: 36px; }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: white;
+    letter-spacing: 0.02em;
+  }
+
+  .logo-text span { color: var(--gold); }
+
+  .nav-right {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero {
+    background: var(--navy);
+    padding: 64px 48px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--off-white);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+
+  .hero-inner { max-width: 720px; }
+
+  .hero-tag {
+    display: inline-block;
+    background: rgba(200,169,110,0.15);
+    border: 1px solid rgba(200,169,110,0.3);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    color: white;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 span { color: var(--gold); }
+
+  .hero p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.7;
+    font-weight: 300;
+    max-width: 560px;
+  }
+
+  .demos {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 48px 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .demo-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(10,34,64,0.07);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .2s, transform .2s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .demo-card:hover {
+    box-shadow: 0 8px 32px rgba(10,34,64,0.14);
+    transform: translateY(-2px);
+  }
+
+  .demo-card-header {
+    padding: 28px 28px 24px;
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .demo-number {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid-grey);
+    margin-bottom: 12px;
+  }
+
+  .demo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    font-size: 20px;
+  }
+
+  .demo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--navy);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .demo-desc {
+    font-size: 13px;
+    color: var(--mid-grey);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .demo-card-body {
+    padding: 20px 28px;
+    flex: 1;
+  }
+
+  .capability {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 12px;
+    color: var(--mid-grey);
+    line-height: 1.4;
+  }
+
+  .capability:last-child { border-bottom: none; }
+
+  .capability-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .demo-card-footer {
+    padding: 16px 28px;
+    background: var(--off-white);
+    border-top: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .demo-tag {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  .launch-text {
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .arrow {
+    transition: transform .2s;
+  }
+
+  .demo-card:hover .arrow { transform: translateX(3px); }
+
+  .footer {
+    margin-top: auto;
+    background: var(--navy);
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-left {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.06em;
+  }
+
+  .nice-badge {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 2px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="18" fill="#00857c"/>
+      <path d="M10 18c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M14 18c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="18" cy="18" r="2" fill="white"/>
+    </svg>
+    <span class="logo-text">Cynergy <span>Bank</span></span>
+  </div>
+  <div class="nav-right">Automation Demo Suite</div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">NICE · Cognigy · Customer Operations</div>
+    <h1>Intelligent automation<br>for <span>Customer Operations</span></h1>
+    <p>A demonstration of AI-powered orchestration across Cynergy Bank's priority automation areas — from customer-facing interactions to back office exception handling and case routing.</p>
+  </div>
+</div>
+
+<div class="demos">
+
+  <a class="demo-card" href="cynergy-ops-dashboard.html">
+    <div class="demo-card-header">
+      <div class="demo-number">Demo 01</div>
+      <div class="demo-icon" style="background:#eaf6f4">💬</div>
+      <div class="demo-title">Omni Case Routing & Webchat</div>
+      <div class="demo-desc">Live operations dashboard showing intelligent case routing via Cognigy webchat. Cases classified and assigned automatically based on intent and agent capacity.</div>
+    </div>
+    <div class="demo-card-body">
+      <div class="capability">
+        <div class="capability-dot" style="background:var(--teal)"></div>
+        <span>Real-time case queue with SLA monitoring</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:var(--teal)"></div>
+        <span>LLM intent classification from webchat conversation</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:var(--teal)"></div>
+        <span>Capacity-based agent allocation</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:var(--teal)"></div>
+        <span>Automated case creation on conversation close</span>
+      </div>
+    </div>
+    <div class="demo-card-footer">
+      <span class="demo-tag" style="background:#eaf6f4;color:var(--teal)">Webchat · Routing</span>
+      <span class="launch-text" style="color:var(--teal)">Launch <span class="arrow">→</span></span>
+    </div>
+  </a>
+
+  <a class="demo-card" href="cynergy-account-opening.html">
+    <div class="demo-card-header">
+      <div class="demo-number">Demo 02</div>
+      <div class="demo-icon" style="background:#eef3fb">📋</div>
+      <div class="demo-title">Account Opening Exception Handler</div>
+      <div class="demo-desc">Intelligent triage of account opening exceptions — CIFAS markers, name mismatches and AML risk flags — with automated routing and agent case notes.</div>
+    </div>
+    <div class="demo-card-body">
+      <div class="capability">
+        <div class="capability-dot" style="background:#1a4480)"></div>
+        <span>Straight-through processing vs manual review decisioning</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:#1a4480"></div>
+        <span>CIFAS marker detection and FC referral routing</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:#1a4480"></div>
+        <span>Stage 2 name mismatch identification</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:#1a4480"></div>
+        <span>LLM-generated agent notes and severity scoring</span>
+      </div>
+    </div>
+    <div class="demo-card-footer">
+      <span class="demo-tag" style="background:#eef3fb;color:#1a4480">KYC · AML · CIFAS</span>
+      <span class="launch-text" style="color:#1a4480">Launch <span class="arrow">→</span></span>
+    </div>
+  </a>
+
+  <a class="demo-card" href="cynergy-chaser-cycle.html">
+    <div class="demo-card-header">
+      <div class="demo-number">Demo 03</div>
+      <div class="demo-icon" style="background:#fff4e8">✉️</div>
+      <div class="demo-title">ISA Chaser Cycle</div>
+      <div class="demo-desc">End-to-end automated customer follow-up cycle. Proactive outbound chasers trigger inbound email handling — LLM extracts entities, classifies intent and routes automatically.</div>
+    </div>
+    <div class="demo-card-body">
+      <div class="capability">
+        <div class="capability-dot" style="background:#b36b00"></div>
+        <span>Scheduled Day 10 / 20 / 30 outbound chaser emails</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:#b36b00"></div>
+        <span>Inbound reply processing via email infrastructure</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:#b36b00"></div>
+        <span>LLM entity extraction — account details, intent, sentiment</span>
+      </div>
+      <div class="capability">
+        <div class="capability-dot" style="background:#b36b00"></div>
+        <span>Personalised automated acknowledgement to customer</span>
+      </div>
+    </div>
+    <div class="demo-card-footer">
+      <span class="demo-tag" style="background:#fff4e8;color:#b36b00">Email · ISA · LLM</span>
+      <span class="launch-text" style="color:#b36b00">Launch <span class="arrow">→</span></span>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">
+  <div class="footer-left">Cynergy Bank · Customer Operations Automation · Confidential demo environment</div>
+  <div class="footer-right">
+    <span class="nice-badge">NICE</span>
+    <span>·</span>
+    <span class="nice-badge">COGNIGY</span>
+  </div>
+</div>
+
+</body>
+</html>
