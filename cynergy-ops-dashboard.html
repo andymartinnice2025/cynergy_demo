@@ -1032,7 +1032,7 @@ nav {
 
   // Inject Cognigy webchat using same approach as direct script injection
   const WEBCHAT_ENDPOINT = 'https://endpoint-trial.cognigy.ai/096314066fb69f6769d787f40c06c289c37377a942708ee0740388945fb6a31d';
-  const WEBCHAT_SRC = 'https://webchat-trial.cognigy.ai/build/webchat3.js';
+  const WEBCHAT_SRC = './webchat3.js';
 
   function callInitWebchat() {
     try {
@@ -1059,52 +1059,86 @@ nav {
     return false;
   }
 
-  const wcScript = document.createElement('script');
-  wcScript.src = WEBCHAT_SRC;
-  wcScript.async = true;
-  wcScript.addEventListener('load', () => {
-    if (callInitWebchat()) return;
-    let tries = 0;
-    const interval = setInterval(() => {
-      tries++;
-      if (callInitWebchat() || tries >= 10) clearInterval(interval);
-    }, 500);
-  });
-  wcScript.addEventListener('error', () => {
-    console.warn('Could not load webchat.js from CDN');
-  });
-  document.head.appendChild(wcScript);
+  function loadWebchatScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
 
-  // After webchat loads, move it into our container and make it fill the panel
+  async function initWebchatWithFallback() {
+    const urls = [
+      WEBCHAT_SRC,
+      './webchat.js'
+    ];
+
+    for (const url of urls) {
+      try {
+        await loadWebchatScript(url);
+        console.log('Webchat loaded from:', url);
+        // Try calling initWebchat with retries
+        let tries = 0;
+        await new Promise((resolve) => {
+          const interval = setInterval(() => {
+            tries++;
+            if (typeof window.initWebchat === 'function') {
+              callInitWebchat();
+              clearInterval(interval);
+              resolve();
+            } else if (tries >= 10) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 500);
+        });
+        if (typeof window.initWebchat === 'function') return;
+      } catch(e) {
+        console.warn('Failed to load webchat from:', url);
+      }
+    }
+    console.warn('All webchat URLs failed');
+  }
+
+  initWebchatWithFallback();
+
+  // Move webchat widget into our container after it renders
+  // Guards against selecting our own container (fixes HierarchyRequestError)
   function positionWebchat() {
     const container = document.getElementById('webchat-container');
     if (!container) return;
 
-    // Try various selectors Cognigy webchat might use
     const selectors = [
-      '#cognigy-webchat',
-      '.cognigy-webchat',
-      '[id*="webchat"]',
       '[class*="webchat-root"]',
-      '[class*="webchat-wrapper"]'
+      '[class*="webchat-wrapper"]',
+      '[class*="webchat-widget"]',
+      '#cognigy-webchat',
+      '.cognigy-webchat'
     ];
 
-    let widget = null;
     for (const sel of selectors) {
-      widget = document.querySelector(sel);
-      if (widget) break;
-    }
-
-    if (widget) {
-      container.appendChild(widget);
-      widget.style.cssText = 'position:relative!important;width:100%!important;height:100%!important;bottom:auto!important;right:auto!important;';
+      try {
+        const found = document.querySelector(sel);
+        if (
+          found &&
+          found !== container &&
+          !container.contains(found) &&
+          !found.contains(container)
+        ) {
+          container.appendChild(found);
+          found.style.cssText = 'position:relative!important;width:100%!important;height:100%!important;bottom:auto!important;right:auto!important;';
+          return;
+        }
+      } catch(e) {}
     }
   }
 
-  // Try positioning after load and again after short delays
-  setTimeout(positionWebchat, 1500);
-  setTimeout(positionWebchat, 3000);
-  setTimeout(positionWebchat, 5000);
+  setTimeout(positionWebchat, 2000);
+  setTimeout(positionWebchat, 4000);
+  setTimeout(positionWebchat, 6000);
 </script>
 </body>
 </html>
