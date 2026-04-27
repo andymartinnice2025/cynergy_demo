@@ -858,7 +858,12 @@ nav {
       </div>
     </div>
 
-    <div class="webchat-container" id="webchat-container"></div>
+    <div class="webchat-container" id="webchat-container">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--mid-grey)">
+        <div style="font-size:13px;font-weight:500">Customer webchat active</div>
+        <div style="font-size:12px">Chat widget loads in bottom right corner</div>
+      </div>
+    </div>
 
     <div class="routing-result" id="routing-result">
       <div class="routing-result-label">
@@ -1107,39 +1112,7 @@ nav {
 
   // Move webchat widget into our container after it renders
   // Guards against selecting our own container (fixes HierarchyRequestError)
-  function positionWebchat() {
-    const container = document.getElementById('webchat-container');
-    if (!container) return;
-
-    const selectors = [
-      '[class*="webchat-root"]',
-      '[class*="webchat-wrapper"]',
-      '[class*="webchat-widget"]',
-      '#cognigy-webchat',
-      '.cognigy-webchat'
-    ];
-
-    for (const sel of selectors) {
-      try {
-        const all = document.querySelectorAll(sel);
-        for (const found of all) {
-          // Skip our own container and anything with id webchat-container
-          if (!found) continue;
-          if (found.id === 'webchat-container') continue;
-          if (found === container) continue;
-          if (container.contains(found)) continue;
-          if (found.contains(container)) continue;
-          container.appendChild(found);
-          found.style.cssText = 'position:relative!important;width:100%!important;height:100%!important;bottom:auto!important;right:auto!important;';
-          return;
-        }
-      } catch(e) {}
-    }
-  }
-
-  setTimeout(positionWebchat, 2000);
-  setTimeout(positionWebchat, 4000);
-  setTimeout(positionWebchat, 6000);
+  // Webchat renders as floating widget
 </script>
 </body>
 </html>
