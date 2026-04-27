@@ -859,6 +859,1015 @@ nav {
     </div>
 
     <div class="webchat-container" id="webchat-container">
+      <div style="display:flex;flex-direction:column;height:100%;">
+        <iframe
+          src="https://webchat-trial.cognigy.ai/v3/096314066fb69f6769d787f40c06c289c37377a942708ee0740388945fb6a31d"
+          style="flex:1;width:100%;border:none;display:block;"
+          allow="microphone"
+          title="Cynergy Bank webchat"
+          id="cognigy-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <div class="routing-result" id="routing-result">
+      <div class="routing-result-label">
+        <span class="cognigy-badge">COGNIGY</span>
+        Routing decision
+      </div>
+      <div id="routing-rows"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Track case count
+  let caseCount = 8;
+  let newCaseId = 47833;
+
+  // Agent loads
+  const agentLoads = { jk: 4, sr: 3, mp: 2, co: 1 };
+  const agentMax = 5;
+  const agentNames = { jk: 'J. Khan', sr: 'S. Rahman', mp: 'M. Patel', co: 'C. Obi' };
+  const agentColors = { jk: '#5b3fa8', sr: '#123668', mp: '#00857c', co: '#00857c' };
+
+  function getBestAgent() {
+    let best = 'co'; let min = agentLoads.co;
+    for (const [k, v] of Object.entries(agentLoads)) {
+      if (v < min) { min = v; best = k; }
+    }
+    return best;
+  }
+
+  function updateAgentBar(key) {
+    const load = agentLoads[key];
+    const pct = Math.round((load / agentMax) * 100);
+    document.getElementById('bar-' + key).style.width = pct + '%';
+    document.getElementById('bar-' + key).style.background = pct >= 80 ? 'var(--warning)' : pct >= 100 ? 'var(--danger)' : 'var(--teal)';
+    document.getElementById('load-' + key).textContent = load + ' / ' + agentMax + ' cases';
+  }
+
+  function addCaseToQueue(caseData) {
+    const agent = getBestAgent();
+    agentLoads[agent]++;
+    updateAgentBar(agent);
+
+    caseCount++;
+    newCaseId++;
+    document.getElementById('queue-count').textContent = caseCount + ' cases';
+    document.getElementById('metric-inprogress').textContent = parseInt(document.getElementById('metric-inprogress').textContent) + 1;
+
+    const slaColor = caseData.priority === 'high' ? 'var(--danger)' : caseData.priority === 'medium' ? 'var(--warning)' : 'var(--teal)';
+    const badgeClass = caseData.caseType === 'ISA Transfer' ? 'badge-isa'
+      : caseData.caseType === 'ISA Breakage' ? 'badge-breakage'
+      : caseData.caseType === 'Account Opening' ? 'badge-account'
+      : 'badge-webchat';
+
+    const slaText = caseData.priority === 'high' ? '⚠ High priority — 2h SLA' : caseData.priority === 'medium' ? 'SLA: 4h' : 'SLA: 1 day';
+    const slaClass = caseData.priority === 'high' ? 'sla-warning' : '';
+
+    const ref = caseData.caseType === 'ISA Transfer' ? 'ISA' : caseData.caseType === 'ISA Breakage' ? 'ISA' : caseData.caseType === 'Account Opening' ? 'APP' : 'GEN';
+
+    const card = document.createElement('div');
+    card.className = 'case-card new-case';
+    card.innerHTML = `
+      <div class="case-type-indicator" style="background:${slaColor}"></div>
+      <div class="case-body">
+        <div class="case-top">
+          <span class="case-ref">${ref}-000${newCaseId}</span>
+          <span class="case-type-badge ${badgeClass}">${caseData.caseType}</span>
+          <span class="case-type-badge badge-webchat">Webchat</span>
+        </div>
+        <div class="case-summary">${caseData.summary}</div>
+        <div class="case-meta">
+          <span class="case-meta-item ${slaClass}">${slaText}</span>
+          <span class="case-meta-item">· ${caseData.queue}</span>
+        </div>
+      </div>
+      <div class="case-right">
+        <div class="assigned-to">
+          <div class="assigned-avatar" style="background:${agentColors[agent]}">${agent.toUpperCase()}</div>
+          <span>${agentNames[agent]}</span>
+        </div>
+        <div class="priority-dot" style="background:${slaColor}"></div>
+      </div>
+    `;
+
+    const list = document.getElementById('case-list');
+    list.insertBefore(card, list.firstChild);
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Show routing result panel
+    const rows = document.getElementById('routing-rows');
+    rows.innerHTML = `
+      <div class="routing-row"><span class="routing-key">Case ref</span><span class="routing-val">${ref}-000${newCaseId}</span></div>
+      <div class="routing-row"><span class="routing-key">Type</span><span class="routing-val">${caseData.caseType}</span></div>
+      <div class="routing-row"><span class="routing-key">Queue</span><span class="routing-val teal">${caseData.queue}</span></div>
+      <div class="routing-row"><span class="routing-key">Assigned to</span><span class="routing-val">${agentNames[agent]}</span></div>
+      <div class="routing-row"><span class="routing-key">Priority</span><span class="routing-val ${caseData.priority === 'high' ? 'danger' : 'teal'}">${caseData.priority.charAt(0).toUpperCase() + caseData.priority.slice(1)}</span></div>
+      <div class="routing-row"><span class="routing-key">Summary</span><span class="routing-val" style="max-width:180px;text-align:right;font-size:11px">${caseData.summary}</span></div>
+    `;
+    document.getElementById('routing-result').classList.add('show');
+  }
+
+  // Listen for Cognigy webchat messages
+  window.addEventListener('message', function(event) {
+    try {
+      const data = event.data;
+      if (!data) return;
+
+      // Cognigy sends structured data events
+      if (data.type === 'webchat/incoming-message' || data.type === 'webchat/message') {
+        const msg = data.data || data;
+        const text = (msg.text || msg.message || '').toLowerCase();
+        const customData = msg.data || {};
+
+        // If Cognigy flow sends routing data directly
+        if (customData.routingDecision) {
+          addCaseToQueue(customData.routingDecision);
+          return;
+        }
+
+        // Fallback: infer from message content
+        if (text.includes('isa') || text.includes('transfer') || text.includes('savings')) {
+          addCaseToQueue({ caseType: 'ISA Transfer', queue: 'ISA processing queue', priority: 'medium', summary: 'Customer ISA enquiry via webchat — routed by Cognigy' });
+        } else if (text.includes('break') || text.includes('withdraw') || text.includes('cancel')) {
+          addCaseToQueue({ caseType: 'ISA Breakage', queue: 'ISA processing queue', priority: 'high', summary: 'Customer requesting ISA breakage — penalty assessment required' });
+        } else if (text.includes('account') || text.includes('open') || text.includes('apply')) {
+          addCaseToQueue({ caseType: 'Account Opening', queue: 'Account opening queue', priority: 'low', summary: 'New account enquiry via webchat — routed for follow-up' });
+        }
+      }
+
+      // Also listen for Cognigy output events
+      if (data.type === 'output' || (data.data && data.data.triggerType === 'webchat_routing')) {
+        const routingData = (data.data && data.data.routingDecision) || null;
+        if (routingData) addCaseToQueue(routingData);
+      }
+
+    } catch(e) {}
+  });
+
+  // Poll Lambda endpoint for new routing decisions from Cognigy
+  const DASHBOARD_ENDPOINT = 'https://liy4l54rzjtv3um3j6gpaadxoi0qdfiq.lambda-url.eu-west-1.on.aws/';
+  let lastTimestamp = null;
+
+  async function pollForRoutingDecision() {
+    try {
+      const res = await fetch(DASHBOARD_ENDPOINT, { method: 'GET' });
+      if (res.status === 204) return;
+      const data = await res.json();
+      if (!data || !data.routingDecision) return;
+
+      // Only process if this is a new decision we haven't seen
+      if (data.timestamp && data.timestamp !== lastTimestamp) {
+        lastTimestamp = data.timestamp;
+        const rd = data.routingDecision;
+        if (rd && rd.caseType) {
+          addCaseToQueue({
+            caseType: rd.caseType,
+            queue: rd.queue || 'ISA processing queue',
+            priority: rd.priority || 'medium',
+            summary: rd.summary || 'Case routed via Cognigy webchat'
+          });
+        }
+      }
+    } catch(e) {
+      // Silently ignore poll errors
+    }
+  }
+
+  // Start polling every 3 seconds
+  setInterval(pollForRoutingDecision, 3000);
+
+  // Webchat loaded via iframe
+</script>
+</body>
+</html>  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* NAV */
+nav {
+  background: var(--navy);
+  padding: 0 28px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+.logo { display: flex; align-items: center; gap: 10px; }
+
+.logo-mark {
+  width: 28px; height: 28px;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: white;
+  letter-spacing: 0.02em;
+}
+
+.logo-text span { color: var(--gold); }
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-badge {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.agent-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 4px 12px 4px 6px;
+}
+
+.agent-avatar {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 500;
+  color: white;
+}
+
+.agent-name { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+/* TOOLBAR */
+.toolbar {
+  background: white;
+  border-bottom: 1px solid var(--light-grey);
+  padding: 0 28px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.toolbar-left { display: flex; align-items: center; gap: 20px; }
+
+.toolbar-tab {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mid-grey);
+  padding: 0 4px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: color .15s;
+}
+
+.toolbar-tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--teal);
+}
+
+.toolbar-right { display: flex; align-items: center; gap: 12px; }
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--off-white);
+  border: 1px solid var(--light-grey);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--mid-grey);
+}
+
+.stat-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+/* MAIN */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* DASHBOARD */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--light-grey);
+}
+
+/* METRICS ROW */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--light-grey);
+  border-bottom: 1px solid var(--light-grey);
+  flex-shrink: 0;
+}
+
+.metric-card {
+  background: white;
+  padding: 14px 20px;
+}
+
+.metric-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mid-grey);
+  margin-bottom: 6px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--navy);
+  font-family: 'Playfair Display', serif;
+  line-height: 1;
+}
+
+.metric-value.danger { color: var(--danger); }
+.metric-value.warning { color: var(--warning); }
+.metric-value.success { color: var(--teal); }
+
+.metric-sub {
+  font-size: 11px;
+  color: var(--mid-grey);
+  margin-top: 4px;
+}
+
+/* QUEUE SECTION */
+.queue-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.queue-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mid-grey);
+}
+
+.queue-count {
+  font-size: 11px;
+  color: var(--mid-grey);
+}
+
+/* CASE CARDS */
+.case-card {
+  background: white;
+  border: 1px solid var(--light-grey);
+  border-radius: 3px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  transition: box-shadow .2s, border-color .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.case-card:hover {
+  box-shadow: 0 2px 12px rgba(10,34,64,0.08);
+  border-color: #d0cec9;
+}
+
+.case-card.new-case {
+  border-color: var(--teal);
+  animation: caseAppear .4s ease;
+}
+
+.case-card.new-case::before {
+  content: 'NEW';
+  position: absolute;
+  top: 0; right: 0;
+  background: var(--teal);
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-bottom-left-radius: 3px;
+}
+
+@keyframes caseAppear {
+  from { opacity: 0; transform: translateY(-8px); box-shadow: 0 0 0 3px rgba(0,168,152,0.3); }
+  to { opacity: 1; transform: translateY(0); box-shadow: none; }
+}
+
+.case-type-indicator {
+  width: 3px;
+  border-radius: 2px;
+  align-self: stretch;
+  min-height: 40px;
+}
+
+.case-body { min-width: 0; }
+
+.case-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.case-ref {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--navy);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.case-type-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+}
+
+.badge-isa { background: #eef3fb; color: var(--info); }
+.badge-account { background: #f0eefa; color: #5b3fa8; }
+.badge-complaint { background: var(--danger-bg); color: var(--danger); }
+.badge-general { background: var(--off-white); color: var(--mid-grey); }
+.badge-breakage { background: #fff4e8; color: #b36b00; }
+.badge-webchat { background: var(--success-bg); color: var(--teal); }
+
+.case-summary {
+  font-size: 12px;
+  color: var(--mid-grey);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+}
+
+.case-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.case-meta-item {
+  font-size: 10px;
+  color: var(--mid-grey);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.case-meta-item.sla-breached { color: var(--danger); font-weight: 500; }
+.case-meta-item.sla-warning { color: var(--warning); font-weight: 500; }
+
+.case-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.assigned-to {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--mid-grey);
+}
+
+.assigned-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.priority-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+}
+
+/* AGENT CAPACITY */
+.capacity-section {
+  background: white;
+  border-top: 1px solid var(--light-grey);
+  padding: 14px 24px;
+  flex-shrink: 0;
+}
+
+.capacity-title {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mid-grey);
+  margin-bottom: 10px;
+}
+
+.agents-row { display: flex; gap: 10px; }
+
+.agent-card {
+  flex: 1;
+  background: var(--off-white);
+  border: 1px solid var(--light-grey);
+  border-radius: 3px;
+  padding: 10px 12px;
+}
+
+.agent-card-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.capacity-bar-wrap {
+  height: 4px;
+  background: var(--light-grey);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.capacity-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .5s ease;
+}
+
+.agent-load {
+  font-size: 10px;
+  color: var(--mid-grey);
+}
+
+/* WEBCHAT PANEL */
+.webchat-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--off-white);
+  overflow: hidden;
+}
+
+.webchat-header {
+  background: white;
+  border-bottom: 1px solid var(--light-grey);
+  padding: 14px 20px;
+  flex-shrink: 0;
+}
+
+.webchat-header-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 3px;
+}
+
+.webchat-header-sub {
+  font-size: 11px;
+  color: var(--mid-grey);
+}
+
+.webchat-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--teal);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.status-dot-live {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.webchat-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: white;
+}
+
+/* Force Cognigy webchat widget into our container */
+.webchat-container > * {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  bottom: auto !important;
+  right: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.routing-result {
+  display: none;
+  background: white;
+  border-top: 1px solid var(--light-grey);
+  padding: 14px 20px;
+  flex-shrink: 0;
+  animation: slideUp .3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.routing-result.show { display: block; }
+
+.routing-result-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mid-grey);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cognigy-badge {
+  background: var(--navy);
+  color: white;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+}
+
+.routing-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.routing-row:last-child { border-bottom: none; }
+.routing-key { color: var(--mid-grey); }
+.routing-val { font-weight: 500; }
+.routing-val.teal { color: var(--teal); }
+.routing-val.danger { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="14" fill="#00857c"/>
+      <path d="M7 14c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M10 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="2" fill="white"/>
+    </svg>
+    <span class="logo-text">Cynergy <span>Bank</span></span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-badge">Operations · Case Routing</span>
+    <div class="agent-pill">
+      <div class="agent-avatar">AM</div>
+      <span class="agent-name">Andrew Martin</span>
+    </div>
+  </div>
+</nav>
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <div class="toolbar-tab active">Live queue</div>
+    <div class="toolbar-tab">My cases</div>
+    <div class="toolbar-tab">Breached SLA</div>
+    <div class="toolbar-tab">Reports</div>
+  </div>
+  <div class="toolbar-right">
+    <div class="stat-pill">
+      <div class="stat-dot" style="background:var(--teal)"></div>
+      <span id="online-agents">4 agents online</span>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-dot" style="background:var(--warning)"></div>
+      <span id="sla-count">2 SLA breaches</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="dashboard">
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-label">Unassigned</div>
+        <div class="metric-value warning" id="metric-unassigned">3</div>
+        <div class="metric-sub">Awaiting routing</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">In progress</div>
+        <div class="metric-value" id="metric-inprogress">7</div>
+        <div class="metric-sub">Across all agents</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">SLA breached</div>
+        <div class="metric-value danger" id="metric-breached">2</div>
+        <div class="metric-sub">Requires escalation</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Resolved today</div>
+        <div class="metric-value success">14</div>
+        <div class="metric-sub">Avg. handle 18 min</div>
+      </div>
+    </div>
+
+    <div class="queue-section" id="queue-section">
+
+      <div class="queue-header">
+        <span class="queue-title">Live case queue</span>
+        <span class="queue-count" id="queue-count">8 cases</span>
+      </div>
+
+      <div id="case-list">
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--danger)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">ISA-00047109</span>
+              <span class="case-type-badge badge-isa">ISA Transfer</span>
+            </div>
+            <div class="case-summary">Transfer in from Nationwide — nominated account details outstanding</div>
+            <div class="case-meta">
+              <span class="case-meta-item sla-breached">⚠ SLA breached 4h ago</span>
+              <span class="case-meta-item">· On hold</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:#5b3fa8">JK</div>
+              <span>J. Khan</span>
+            </div>
+            <div class="priority-dot" style="background:var(--danger)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--warning)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">APP-00046882</span>
+              <span class="case-type-badge badge-account">Account Opening</span>
+            </div>
+            <div class="case-summary">CIFAS marker detected — FC review pending, Jumio validation sent</div>
+            <div class="case-meta">
+              <span class="case-meta-item sla-warning">⚠ SLA due in 1h 20m</span>
+              <span class="case-meta-item">· FC queue</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:var(--navy)">SR</div>
+              <span>S. Rahman</span>
+            </div>
+            <div class="priority-dot" style="background:var(--warning)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--warning)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">ISA-00047340</span>
+              <span class="case-type-badge badge-breakage">ISA Breakage</span>
+            </div>
+            <div class="case-summary">Customer requesting early breakage — 180 day penalty applicable</div>
+            <div class="case-meta">
+              <span class="case-meta-item sla-warning">⚠ SLA due in 3h</span>
+              <span class="case-meta-item">· ISA processing</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:var(--teal)">MP</div>
+              <span>M. Patel</span>
+            </div>
+            <div class="priority-dot" style="background:var(--warning)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--teal)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">ISA-00047601</span>
+              <span class="case-type-badge badge-isa">ISA Transfer</span>
+            </div>
+            <div class="case-summary">Transfer out to Barclays — awaiting customer confirmation of account details</div>
+            <div class="case-meta">
+              <span class="case-meta-item">SLA: 6h remaining</span>
+              <span class="case-meta-item">· Chaser Day 10 sent</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:#5b3fa8">JK</div>
+              <span>J. Khan</span>
+            </div>
+            <div class="priority-dot" style="background:var(--teal)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--navy-light)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">APP-00047715</span>
+              <span class="case-type-badge badge-account">Account Opening</span>
+            </div>
+            <div class="case-summary">Stage 2 name mismatch — Davies vs Davis, awaiting identity document</div>
+            <div class="case-meta">
+              <span class="case-meta-item">SLA: 1 day remaining</span>
+              <span class="case-meta-item">· Stage 2 review</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:var(--navy)">SR</div>
+              <span>S. Rahman</span>
+            </div>
+            <div class="priority-dot" style="background:var(--navy-light)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--mid-grey)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">GEN-00047820</span>
+              <span class="case-type-badge badge-general">General Enquiry</span>
+            </div>
+            <div class="case-summary">Customer querying interest rate on FRISA — informational only</div>
+            <div class="case-meta">
+              <span class="case-meta-item">SLA: 2 days remaining</span>
+              <span class="case-meta-item">· General queue</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:var(--teal)">MP</div>
+              <span>M. Patel</span>
+            </div>
+            <div class="priority-dot" style="background:var(--mid-grey)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--danger)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">ISA-00047088</span>
+              <span class="case-type-badge badge-isa">ISA Transfer</span>
+            </div>
+            <div class="case-summary">BACS transfer in — ready for payment, Equation processing required</div>
+            <div class="case-meta">
+              <span class="case-meta-item sla-breached">⚠ SLA breached 1h ago</span>
+              <span class="case-meta-item">· ISA processing</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <span style="font-size:11px;color:var(--mid-grey);font-style:italic">Unassigned</span>
+            </div>
+            <div class="priority-dot" style="background:var(--danger)"></div>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-type-indicator" style="background:var(--mid-grey)"></div>
+          <div class="case-body">
+            <div class="case-top">
+              <span class="case-ref">APP-00047799</span>
+              <span class="case-type-badge badge-account">Account Opening</span>
+            </div>
+            <div class="case-summary">New personal savings application — straight-through, welcome email sent</div>
+            <div class="case-meta">
+              <span class="case-meta-item">Completed · Auto-processed</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="assigned-to">
+              <div class="assigned-avatar" style="background:var(--teal)">CO</div>
+              <span>C. Obi</span>
+            </div>
+            <div class="priority-dot" style="background:var(--mid-grey)"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="capacity-section">
+      <div class="capacity-title">Agent capacity</div>
+      <div class="agents-row">
+        <div class="agent-card">
+          <div class="agent-card-name">J. Khan</div>
+          <div class="capacity-bar-wrap">
+            <div class="capacity-bar" style="width:80%;background:var(--warning)" id="bar-jk"></div>
+          </div>
+          <div class="agent-load" id="load-jk">4 / 5 cases</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-card-name">S. Rahman</div>
+          <div class="capacity-bar-wrap">
+            <div class="capacity-bar" style="width:60%;background:var(--teal)" id="bar-sr"></div>
+          </div>
+          <div class="agent-load" id="load-sr">3 / 5 cases</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-card-name">M. Patel</div>
+          <div class="capacity-bar-wrap">
+            <div class="capacity-bar" style="width:40%;background:var(--teal)" id="bar-mp"></div>
+          </div>
+          <div class="agent-load" id="load-mp">2 / 5 cases</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-card-name">C. Obi</div>
+          <div class="capacity-bar-wrap">
+            <div class="capacity-bar" style="width:20%;background:var(--teal)" id="bar-co"></div>
+          </div>
+          <div class="agent-load" id="load-co">1 / 5 cases</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WEBCHAT PANEL -->
+  <div class="webchat-panel">
+    <div class="webchat-header">
+      <div class="webchat-header-title">Customer webchat</div>
+      <div class="webchat-header-sub">Cognigy AI · Live routing</div>
+      <div class="webchat-status">
+        <div class="status-dot-live"></div>
+        Connected · Routing engine active
+      </div>
+    </div>
+
+    <div class="webchat-container" id="webchat-container">
       <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--mid-grey)">
         <div style="font-size:13px;font-weight:500">Customer webchat active</div>
         <div style="font-size:12px">Chat widget loads in bottom right corner</div>
