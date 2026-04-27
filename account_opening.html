@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cynergy Bank — Personal Account Opening</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a2240;
+    --navy-mid: #123668;
+    --teal: #00857c;
+    --teal-light: #00a898;
+    --gold: #c8a96e;
+    --off-white: #f7f6f3;
+    --light-grey: #eceae5;
+    --mid-grey: #9b9790;
+    --text: #1a1a1a;
+    --danger: #c0392b;
+    --success: #00857c;
+    --warning: #e67e22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--navy);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: white;
+    letter-spacing: 0.02em;
+  }
+
+  .logo-text span {
+    color: var(--gold);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    transition: color .2s;
+  }
+
+  .nav-links a:hover { color: white; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    background: var(--navy-mid);
+    padding: 0 40px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 400;
+  }
+
+  .progress-step.done { color: var(--teal-light); }
+  .progress-step.active { color: white; font-weight: 500; }
+
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    background: rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+
+  .progress-step.done .step-num { background: var(--teal); color: white; }
+  .progress-step.active .step-num { background: var(--gold); color: var(--navy); font-weight: 600; }
+
+  .step-divider {
+    width: 32px;
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 8px;
+  }
+
+  /* MAIN LAYOUT */
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* FORM CARD */
+  .form-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(10,34,64,0.08);
+  }
+
+  .form-header {
+    background: var(--navy);
+    padding: 28px 32px;
+  }
+
+  .form-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: white;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .form-header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+  }
+
+  .application-ref {
+    display: inline-block;
+    margin-top: 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 2px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  /* EXCEPTION BANNER */
+  .exception-banner {
+    margin: 0;
+    padding: 12px 32px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    display: none;
+  }
+
+  .exception-banner.cifas {
+    background: #fdf2f2;
+    border-left: 3px solid var(--danger);
+    color: var(--danger);
+  }
+
+  .exception-banner.mismatch {
+    background: #fef9f0;
+    border-left: 3px solid var(--warning);
+    color: var(--warning);
+  }
+
+  .exception-banner.show { display: flex; }
+
+  .exception-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* FORM BODY */
+  .form-body { padding: 32px; }
+
+  .form-section {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--mid-grey);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field-grid.full { grid-template-columns: 1fr; }
+  .field-grid.thirds { grid-template-columns: 1fr 1fr 1fr; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field.span2 { grid-column: span 2; }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mid-grey);
+    letter-spacing: 0.03em;
+  }
+
+  input, select {
+    border: 1px solid var(--light-grey);
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: white;
+    transition: border-color .2s;
+    appearance: none;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  input[readonly] {
+    background: var(--off-white);
+    color: var(--text);
+  }
+
+  /* SCORE BADGES */
+  .score-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .score-badge {
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .score-badge .score-label {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .score-badge.good { background: #eaf6f4; color: var(--teal); }
+  .score-badge.medium { background: #fef9f0; color: var(--warning); }
+  .score-badge.bad { background: #fdf2f2; color: var(--danger); }
+
+  /* TOGGLE SWITCHES */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-info { flex: 1; }
+  .toggle-info strong { font-size: 13px; font-weight: 500; display: block; margin-bottom: 2px; }
+  .toggle-info span { font-size: 12px; color: var(--mid-grey); }
+
+  .toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--light-grey);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--danger); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+  /* SUBMIT */
+  .form-footer {
+    padding: 24px 32px;
+    background: var(--off-white);
+    border-top: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .submit-note {
+    font-size: 12px;
+    color: var(--mid-grey);
+    line-height: 1.5;
+    max-width: 260px;
+  }
+
+  .btn-submit {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .btn-submit:hover { background: var(--navy-mid); }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled { background: var(--mid-grey); cursor: not-allowed; }
+
+  /* SIDEBAR */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  .sidebar-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(10,34,64,0.06);
+  }
+
+  .sidebar-card-header {
+    background: var(--navy);
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-card-body { padding: 20px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  .info-row:last-child { border-bottom: none; }
+  .info-row .key { color: var(--mid-grey); flex-shrink: 0; }
+  .info-row .val { font-weight: 500; text-align: right; }
+  .info-row .val.green { color: var(--teal); }
+  .info-row .val.red { color: var(--danger); }
+  .info-row .val.amber { color: var(--warning); }
+
+  .result-panel {
+    display: none;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(10,34,64,0.06);
+    animation: slideIn .3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-panel.show { display: block; }
+
+  .result-header {
+    padding: 16px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-header.stp { background: #eaf6f4; color: var(--teal); }
+  .result-header.exception { background: #fdf2f2; color: var(--danger); }
+  .result-header.warning { background: #fef9f0; color: var(--warning); }
+
+  .result-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .result-body { padding: 16px 20px; font-size: 13px; line-height: 1.6; }
+  .result-body strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mid-grey); }
+
+  .cognigy-tag {
+    display: inline-block;
+    background: var(--navy);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .loading-dots {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .loading-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: dot .8s infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: .15s; }
+  .loading-dots span:nth-child(3) { animation-delay: .3s; }
+
+  @keyframes dot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="18" fill="#00857c"/>
+      <path d="M10 18c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M14 18c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="18" cy="18" r="2" fill="white"/>
+    </svg>
+    <span class="logo-text">Cynergy <span>Bank</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#">Personal</a></li>
+    <li><a href="#">Business</a></li>
+    <li><a href="#">Savings</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="progress-bar">
+  <div class="progress-step done">
+    <div class="step-num">✓</div>
+    <span>Product selection</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="progress-step done">
+    <div class="step-num">✓</div>
+    <span>Personal details</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="progress-step done">
+    <div class="step-num">✓</div>
+    <span>Identity verification</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="progress-step done">
+    <div class="step-num">✓</div>
+    <span>Financial information</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="progress-step active">
+    <div class="step-num">5</div>
+    <span>Review &amp; submit</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <div class="form-card">
+    <div class="form-header">
+      <h1>Review your application</h1>
+      <p>Please confirm your details below. Stages 1–4 have been completed. Submit to proceed.</p>
+      <div class="application-ref">APP-00047832 &nbsp;·&nbsp; Online ISA</div>
+    </div>
+
+    <div id="cifas-banner" class="exception-banner cifas">
+      <div class="exception-dot"></div>
+      CIFAS marker detected — application flagged for Financial Crime review
+    </div>
+    <div id="mismatch-banner" class="exception-banner mismatch">
+      <div class="exception-dot"></div>
+      Name mismatch identified — Stage 2 manual review required
+    </div>
+
+    <div class="form-body">
+
+      <div class="form-section">
+        <div class="section-title">Personal details</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" value="Sarah" readonly>
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" id="lastName" value="Merchant" readonly>
+          </div>
+          <div class="field">
+            <label>Date of birth</label>
+            <input type="text" value="15 June 1982" readonly>
+          </div>
+          <div class="field">
+            <label>Nationality</label>
+            <input type="text" value="British" readonly>
+          </div>
+          <div class="field span2">
+            <label>Residential address</label>
+            <input type="text" value="14 Oak Lane, London, SE1 4AB" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Identity &amp; AML checks</div>
+        <div class="score-row">
+          <div class="score-badge good" id="equifax-badge">
+            <span class="score-label">Equifax score</span>
+            724
+          </div>
+          <div class="score-badge good" id="risk-badge">
+            <span class="score-label">AML risk rating</span>
+            Low
+          </div>
+          <div class="score-badge good" id="cifas-badge">
+            <span class="score-label">CIFAS check</span>
+            Clear
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Product &amp; funding</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Product applied for</label>
+            <input type="text" value="Online ISA (OISA)" readonly>
+          </div>
+          <div class="field">
+            <label>Initial deposit</label>
+            <input type="text" value="£5,000.00" readonly>
+          </div>
+          <div class="field">
+            <label>Funding method</label>
+            <input type="text" value="Bank transfer" readonly>
+          </div>
+          <div class="field">
+            <label>Tax year subscription</label>
+            <input type="text" value="2025/2026" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Demo controls — exception scenarios</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>CIFAS marker</strong>
+            <span>Simulates a CIFAS flag on the applicant record</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-cifas" onchange="updateExceptions()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Name mismatch</strong>
+            <span>Simulates a Stage 2 name discrepancy</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-mismatch" onchange="updateExceptions()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>High AML risk</strong>
+            <span>Overrides risk rating to High — requires FC referral</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-aml" onchange="updateExceptions()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-footer">
+      <p class="submit-note">By submitting, this application will be passed to Cynergy Bank's automated processing engine for review.</p>
+      <button class="btn-submit" id="submitBtn" onclick="submitApplication()">Submit application</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Application summary</div>
+      <div class="sidebar-card-body">
+        <div class="info-row">
+          <span class="key">Reference</span>
+          <span class="val">APP-00047832</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Product</span>
+          <span class="val">Online ISA</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Applicant</span>
+          <span class="val">Sarah J Merchant</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Stage</span>
+          <span class="val">5 of 5</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Processing</span>
+          <span class="val green" id="processing-type">Straight-through</span>
+        </div>
+        <div class="info-row">
+          <span class="key">Est. decision</span>
+          <span class="val" id="est-decision">Instant</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card result-panel" id="result-panel">
+      <div class="result-header" id="result-header">
+        <div class="result-dot"></div>
+        <span id="result-title"></span>
+      </div>
+      <div class="result-body" id="result-body"></div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">FSCS Protection</div>
+      <div class="sidebar-card-body">
+        <p style="font-size:12px;color:var(--mid-grey);line-height:1.6">Your eligible deposits are protected up to <strong style="color:var(--text)">£85,000</strong> by the Financial Services Compensation Scheme.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const COGNIGY_URL = "https://endpoint-trial.cognigy.ai/bfbd4718ba2aeb8c6004149ee33725d2c7855f5fa95b7a5abf0331f654887a7a";
+
+  function updateExceptions() {
+    const cifas = document.getElementById('toggle-cifas').checked;
+    const mismatch = document.getElementById('toggle-mismatch').checked;
+    const aml = document.getElementById('toggle-aml').checked;
+
+    document.getElementById('cifas-banner').classList.toggle('show', cifas);
+    document.getElementById('mismatch-banner').classList.toggle('show', mismatch);
+
+    const cifasBadge = document.getElementById('cifas-badge');
+    cifasBadge.className = 'score-badge ' + (cifas ? 'bad' : 'good');
+    cifasBadge.innerHTML = '<span class="score-label">CIFAS check</span>' + (cifas ? 'FLAGGED' : 'Clear');
+
+    const riskBadge = document.getElementById('risk-badge');
+    riskBadge.className = 'score-badge ' + (aml ? 'bad' : 'good');
+    riskBadge.innerHTML = '<span class="score-label">AML risk rating</span>' + (aml ? 'High' : 'Low');
+
+    const lastName = document.getElementById('lastName');
+    lastName.value = mismatch ? 'Marchant' : 'Merchant';
+
+    const hasException = cifas || mismatch || aml;
+    document.getElementById('processing-type').textContent = hasException ? 'Manual review' : 'Straight-through';
+    document.getElementById('processing-type').className = 'val ' + (hasException ? 'red' : 'green');
+    document.getElementById('est-decision').textContent = hasException ? '2–5 business days' : 'Instant';
+  }
+
+  async function submitApplication() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+
+    const cifas = document.getElementById('toggle-cifas').checked;
+    const mismatch = document.getElementById('toggle-mismatch').checked;
+    const aml = document.getElementById('toggle-aml').checked;
+
+    const hasException = cifas || mismatch || aml;
+
+    const exceptionTypes = [];
+    if (cifas) exceptionTypes.push('CIFAS_MARKER');
+    if (mismatch) exceptionTypes.push('NAME_MISMATCH');
+    if (aml) exceptionTypes.push('HIGH_AML_RISK');
+
+    const payload = {
+      userId: "sarah.merchant@email.co.uk",
+      sessionId: "APP-00047832",
+      text: "new_account_application",
+      data: {
+        triggerType: "account_opening",
+        applicationId: "APP-00047832",
+        applicantName: mismatch ? "Sarah J Marchant" : "Sarah J Merchant",
+        dob: "15/06/1982",
+        address: "14 Oak Lane, London, SE1 4AB",
+        product: "Online ISA",
+        initialDeposit: 5000,
+        equifaxScore: 724,
+        amlRiskRating: aml ? "High" : "Low",
+        cifasFlag: cifas,
+        nameMismatch: mismatch,
+        exceptionTypes: exceptionTypes,
+        straightThroughEligible: !hasException
+      }
+    };
+
+    const panel = document.getElementById('result-panel');
+    const header = document.getElementById('result-header');
+    const title = document.getElementById('result-title');
+    const body = document.getElementById('result-body');
+
+    try {
+      const res = await fetch(COGNIGY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      panel.classList.add('show');
+
+      if (!hasException) {
+        header.className = 'result-header stp';
+        title.textContent = 'Straight-through processing';
+        body.innerHTML = `
+          <div class="cognigy-tag">COGNIGY</div>
+          <strong>Decision</strong>
+          Application approved automatically. No exceptions detected.
+          <br><br>
+          <strong>Next step</strong>
+          Welcome email dispatched. Account creation initiated in Equation.
+        `;
+      } else {
+        const type = cifas ? 'exception' : 'warning';
+        header.className = 'result-header ' + type;
+        title.textContent = cifas ? 'Exception — FC review required' : mismatch ? 'Exception — Stage 2 mismatch' : 'Exception — High risk referral';
+        const routingMsg = cifas
+          ? 'Application flagged for Financial Crime team. CIFAS record retrieved and attached to case. Jumio identity validation request sent to applicant.'
+          : mismatch
+          ? 'Name discrepancy identified between application and identity document. Case routed to Stage 2 manual review queue in Salesforce.'
+          : 'AML risk score exceeds threshold. Risk scorecard attached. Case referred to FC / MLRO for approval before onboarding.';
+        body.innerHTML = `
+          <div class="cognigy-tag">COGNIGY</div>
+          <strong>Exception type</strong>
+          ${exceptionTypes.join(', ')}
+          <br><br>
+          <strong>Cognigy action</strong>
+          ${routingMsg}
+        `;
+      }
+
+    } catch (e) {
+      panel.classList.add('show');
+      header.className = 'result-header stp';
+      title.textContent = 'Submitted — review outcome below';
+      body.innerHTML = `
+        <div class="cognigy-tag">COGNIGY</div>
+        <strong>Note</strong>
+        Cognigy endpoint not configured — update COGNIGY_URL in the script to connect live. Application payload was prepared correctly.
+        <br><br>
+        <strong>Payload sent</strong>
+        triggerType: account_opening<br>
+        cifasFlag: ${cifas}<br>
+        nameMismatch: ${mismatch}<br>
+        amlRisk: ${aml ? 'High' : 'Low'}<br>
+        straightThrough: ${!hasException}
+      `;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Submit application';
+  }
+</script>
+</body>
+</html>
