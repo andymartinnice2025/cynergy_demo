@@ -588,11 +588,11 @@
         <div class="field-grid">
           <div class="field">
             <label>First name</label>
-            <input type="text" value="Sarah" readonly>
+            <input type="text" value="A P" readonly>
           </div>
           <div class="field">
             <label>Last name</label>
-            <input type="text" id="lastName" value="Merchant" readonly>
+            <input type="text" id="lastName" value="Martin" readonly>
           </div>
           <div class="field">
             <label>Date of birth</label>
@@ -706,7 +706,7 @@
         </div>
         <div class="info-row">
           <span class="key">Applicant</span>
-          <span class="val">Sarah J Merchant</span>
+          <span class="val">A P Martin</span>
         </div>
         <div class="info-row">
           <span class="key">Stage</span>
@@ -742,7 +742,7 @@
 </div>
 
 <script>
-  const COGNIGY_URL = "https://endpoint-trial.cognigy.ai/bfbd4718ba2aeb8c6004149ee33725d2c7855f5fa95b7a5abf0331f654887a7a";
+  const COGNIGY_URL = "YOUR_COGNIGY_ENDPOINT_HERE";
 
   function updateExceptions() {
     const cifas = document.getElementById('toggle-cifas').checked;
@@ -761,7 +761,7 @@
     riskBadge.innerHTML = '<span class="score-label">AML risk rating</span>' + (aml ? 'High' : 'Low');
 
     const lastName = document.getElementById('lastName');
-    lastName.value = mismatch ? 'Marchant' : 'Merchant';
+    lastName.value = mismatch ? 'A P Marten' : 'A P Martin';
 
     const hasException = cifas || mismatch || aml;
     document.getElementById('processing-type').textContent = hasException ? 'Manual review' : 'Straight-through';
@@ -786,13 +786,13 @@
     if (aml) exceptionTypes.push('HIGH_AML_RISK');
 
     const payload = {
-      userId: "sarah.merchant@email.co.uk",
+      userId: "ap.martin@email.co.uk",
       sessionId: "APP-00047832",
       text: "new_account_application",
       data: {
         triggerType: "account_opening",
         applicationId: "APP-00047832",
-        applicantName: mismatch ? "Sarah J Marchant" : "Sarah J Merchant",
+        applicantName: mismatch ? "A P Marten" : "A P Martin",
         dob: "15/06/1982",
         address: "14 Oak Lane, London, SE1 4AB",
         product: "Online ISA",
