@@ -1008,17 +1008,31 @@ nav {
   const DASHBOARD_ENDPOINT = 'https://liy4l54rzjtv3um3j6gpaadxoi0qdfiq.lambda-url.eu-west-1.on.aws/';
   let lastTimestamp = new Date().toISOString();
 
+  // Debug indicator
+  const debugEl = document.createElement('div');
+  debugEl.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:white;font-size:11px;padding:6px 10px;border-radius:4px;z-index:9999;max-width:300px;';
+  debugEl.textContent = 'Polling...';
+  document.body.appendChild(debugEl);
+
   async function pollForRoutingDecision() {
     try {
       const res = await fetch(DASHBOARD_ENDPOINT, { method: 'GET' });
-      if (res.status === 204) return;
+      if (res.status === 204) {
+        debugEl.textContent = 'Poll: no decision yet';
+        return;
+      }
       const data = await res.json();
-      if (!data || !data.routingDecision) return;
+      if (!data || !data.routingDecision) {
+        debugEl.textContent = 'Poll: empty response';
+        return;
+      }
 
-      // Only process if this is a new decision we haven't seen
+      debugEl.textContent = `Poll: ts=${data.timestamp} last=${lastTimestamp} match=${data.timestamp === lastTimestamp}`;
+
       if (data.timestamp && data.timestamp !== lastTimestamp) {
         lastTimestamp = data.timestamp;
         const rd = data.routingDecision;
+        debugEl.textContent = `NEW CASE: ${rd.caseType}`;
         if (rd && rd.caseType) {
           addCaseToQueue({
             caseType: rd.caseType,
@@ -1029,7 +1043,7 @@ nav {
         }
       }
     } catch(e) {
-      // Silently ignore poll errors
+      debugEl.textContent = `Poll error: ${e.message}`;
     }
   }
 
