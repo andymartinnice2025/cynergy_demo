@@ -1059,7 +1059,31 @@ nav {
     let tries = 0;
     const interval = setInterval(() => {
       tries++;
-      if (callInitWebchat() || tries >= 20) clearInterval(interval);
+      if (callInitWebchat() || tries >= 20) {
+        clearInterval(interval);
+        // After init, wait for widget to render then open and trigger start
+        setTimeout(() => {
+          try {
+            // Try webchat3 API methods to open and send start
+            if (window.cognigyWebchat) {
+              window.cognigyWebchat.open();
+              window.cognigyWebchat.sendMessage('', { payload: 'start' });
+            }
+            // Also try dispatching open event directly on the widget
+            const widget = document.querySelector('[class*="webchat"]');
+            if (widget) {
+              widget.dispatchEvent(new CustomEvent('webchat/open', { bubbles: true }));
+            }
+            // Try postMessage approach
+            window.dispatchEvent(new CustomEvent('webchat/open'));
+            window.dispatchEvent(new CustomEvent('webchat/send-message', {
+              detail: { text: '', data: { payload: 'start' } }
+            }));
+          } catch(e) {
+            console.log('Auto-start attempt:', e);
+          }
+        }, 2000);
+      }
     }, 500);
   };
   wcScript.onerror = (e) => console.warn('Failed to load webchat script:', e);
