@@ -1043,21 +1043,7 @@ nav {
   function callInitWebchat() {
     try {
       if (typeof window.initWebchat === 'function') {
-        window.initWebchat(WEBCHAT_ENDPOINT, {
-          settings: {
-            colorScheme: '#0a2240',
-            headerTitle: 'Cynergy Bank',
-            headerSubtitle: 'How can we help you today?',
-            enableTypingIndicator: true,
-            startBehavior: 'inject-text',
-            startPayload: 'start',
-            startText: 'start',
-            widgetSettings: {
-              defaultOpen: true,
-              disableToggleButton: false
-            }
-          }
-        });
+        window.initWebchat(WEBCHAT_ENDPOINT);
         return true;
       }
     } catch(e) {
