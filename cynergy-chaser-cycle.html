@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cynergy Bank — ISA Chaser Cycle</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a2240;
+    --navy-mid: #123668;
+    --teal: #00857c;
+    --teal-light: #00a898;
+    --gold: #c8a96e;
+    --off-white: #f7f6f3;
+    --light-grey: #eceae5;
+    --mid-grey: #9b9790;
+    --text: #1a1a1a;
+    --purple: #7b3f8c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  nav {
+    background: var(--navy);
+    padding: 0 48px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 36px; height: 36px; }
+  .logo-text { font-family: 'Playfair Display', serif; font-size: 18px; color: white; letter-spacing: 0.02em; }
+  .logo-text span { color: var(--gold); }
+  .nav-right { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .hero {
+    background: var(--navy);
+    padding: 48px 48px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 50px;
+    background: var(--off-white);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+
+  .hero-tag {
+    display: inline-block;
+    background: rgba(123,63,140,0.2);
+    border: 1px solid rgba(123,63,140,0.4);
+    color: #c090d0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    color: white;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .hero h1 span { color: var(--gold); }
+
+  .hero p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+    font-weight: 300;
+    max-width: 520px;
+  }
+
+  .main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 48px 80px;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .timeline-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(10,34,64,0.08);
+  }
+
+  .timeline-header {
+    background: var(--navy);
+    padding: 20px 28px;
+  }
+
+  .timeline-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: white;
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+
+  .timeline-header p { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  .timeline-body { padding: 28px; }
+
+  .timeline-step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .timeline-step:last-child { margin-bottom: 0; }
+
+  .timeline-step::before {
+    content: '';
+    position: absolute;
+    left: 23px; top: 48px;
+    width: 2px;
+    bottom: -24px;
+    background: var(--light-grey);
+  }
+
+  .timeline-step:last-child::before { display: none; }
+
+  .step-circle {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .step-content { padding-top: 8px; }
+
+  .step-day {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mid-grey);
+    margin-bottom: 4px;
+  }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+
+  .step-desc { font-size: 12px; color: var(--mid-grey); line-height: 1.5; }
+
+  .step-action {
+    margin-top: 10px;
+  }
+
+  .btn-trigger {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-trigger:hover { background: var(--navy-mid); }
+  .btn-trigger:disabled { background: var(--mid-grey); cursor: not-allowed; }
+  .btn-trigger.teal { background: var(--teal); }
+  .btn-trigger.teal:hover { background: var(--teal-light); }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+
+  .status-badge.pending { background: var(--off-white); color: var(--mid-grey); border: 1px solid var(--light-grey); }
+  .status-badge.sent { background: #eaf6f4; color: var(--teal); border: 1px solid #b8e0dc; }
+  .status-badge.waiting { background: #f0eefa; color: var(--purple); border: 1px solid #d4bce0; }
+  .status-badge.received { background: #fff4e8; color: #b36b00; border: 1px solid #f0d8b0; }
+  .status-badge.complete { background: #eaf6f4; color: var(--teal); border: 1px solid #b8e0dc; }
+
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status-dot.pulse { animation: pulse 1.5s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .loading-dots { display: inline-flex; gap: 3px; align-items: center; }
+  .loading-dots span { width: 4px; height: 4px; border-radius: 50%; background: white; animation: dot .8s infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: .15s; }
+  .loading-dots span:nth-child(3) { animation-delay: .3s; }
+
+  @keyframes dot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* SIDEBAR */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  .sidebar-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(10,34,64,0.06);
+  }
+
+  .sidebar-card-header {
+    background: var(--navy);
+    padding: 12px 18px;
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-card-body { padding: 16px 18px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 12px;
+    gap: 10px;
+  }
+
+  .info-row:last-child { border-bottom: none; }
+  .info-row .key { color: var(--mid-grey); flex-shrink: 0; }
+  .info-row .val { font-weight: 500; text-align: right; }
+  .info-row .val.green { color: var(--teal); }
+  .info-row .val.purple { color: var(--purple); }
+
+  .email-preview {
+    background: var(--off-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 2px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--mid-grey);
+    margin-top: 8px;
+  }
+
+  .email-preview strong { color: var(--navy); display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--light-grey);
+    color: var(--mid-grey);
+    padding: 6px 14px;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    border-radius: 2px;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color .2s, color .2s;
+  }
+
+  .reset-btn:hover { border-color: var(--navy); color: var(--navy); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="18" fill="#00857c"/>
+      <path d="M10 18c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M14 18c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="18" cy="18" r="2" fill="white"/>
+    </svg>
+    <span class="logo-text">Cynergy <span>Bank</span></span>
+  </div>
+  <div class="nav-right">ISA Chaser Cycle · Demo 04</div>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag">Demo 04 · ISA Chaser Cycle</div>
+  <h1>Automated <span>customer follow-up</span></h1>
+  <p>Trigger the Day 10 chaser email, receive it in your inbox, reply, and watch Cognigy process the response — extracting account details, classifying intent and sending a personalised acknowledgement.</p>
+</div>
+
+<div class="main">
+
+  <div class="timeline-card">
+    <div class="timeline-header">
+      <h2>Chaser cycle — live demo</h2>
+      <p>Follow steps in order · Case reference ISA-00047832 · A P Martin</p>
+    </div>
+    <div class="timeline-body">
+
+      <div class="timeline-step">
+        <div class="step-circle" style="background:var(--navy)" id="circle-1">1</div>
+        <div class="step-content">
+          <div class="step-day">Step 1</div>
+          <div class="step-title">Trigger Day 10 chaser email</div>
+          <div class="step-desc">Simulates NICE Proactive AI firing the scheduled chaser. Cognigy receives the trigger and sends the reminder email to your inbox.</div>
+          <div class="step-action">
+            <button class="btn-trigger" id="btn-chaser" onclick="triggerChaser()">
+              Send Day 10 chaser ↗
+            </button>
+            <div class="status-badge pending" id="status-1">
+              <div class="status-dot"></div>
+              Ready to trigger
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-circle" style="background:var(--light-grey);color:var(--mid-grey)" id="circle-2">2</div>
+        <div class="step-content">
+          <div class="step-day">Step 2</div>
+          <div class="step-title">Check your inbox</div>
+          <div class="step-desc">The chaser email will arrive from isa-transfers@mail.apm-nice-demo.autos. Show the email to the audience — this is what Cynergy's customers would receive automatically at Day 10.</div>
+          <div class="status-badge pending" id="status-2">
+            <div class="status-dot"></div>
+            Waiting for step 1
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-circle" style="background:var(--light-grey);color:var(--mid-grey)" id="circle-3">3</div>
+        <div class="step-content">
+          <div class="step-day">Step 3</div>
+          <div class="step-title">Reply to the chaser email</div>
+          <div class="step-desc">Reply using the script below. This triggers the inbound email processing — SES receives it, Lambda parses it, Cognigy LLM analyses intent and entities.</div>
+          <div class="status-badge pending" id="status-3">
+            <div class="status-dot"></div>
+            Waiting for step 2
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-circle" style="background:var(--light-grey);color:var(--mid-grey)" id="circle-4">4</div>
+        <div class="step-content">
+          <div class="step-day">Step 4</div>
+          <div class="step-title">Show the Cognigy interaction panel</div>
+          <div class="step-desc">Open Cognigy and show the flow log — LLM output, entities extracted (account name, sort code, account number, amount), sentiment scored, interest query flagged.</div>
+          <div class="status-badge pending" id="status-4">
+            <div class="status-dot"></div>
+            Waiting for reply
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-circle" style="background:var(--light-grey);color:var(--mid-grey)" id="circle-5">5</div>
+        <div class="step-content">
+          <div class="step-day">Step 5</div>
+          <div class="step-title">Check inbox for acknowledgement</div>
+          <div class="step-desc">A personalised acknowledgement email arrives automatically — addressing Andy by name, confirming receipt, and referencing the interest query specifically. Zero agent involvement.</div>
+          <div class="status-badge pending" id="status-5">
+            <div class="status-dot"></div>
+            Waiting for reply
+          </div>
+          <div class="step-action" style="margin-top:12px">
+            <button class="btn-trigger teal" onclick="markComplete()" id="btn-complete" style="display:none">
+              ✓ Mark demo complete
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Case details</div>
+      <div class="sidebar-card-body">
+        <div class="info-row"><span class="key">Case ref</span><span class="val">ISA-00047832</span></div>
+        <div class="info-row"><span class="key">Customer</span><span class="val">A P Martin</span></div>
+        <div class="info-row"><span class="key">Product</span><span class="val">FRISA</span></div>
+        <div class="info-row"><span class="key">Provider</span><span class="val">Nationwide</span></div>
+        <div class="info-row"><span class="key">Amount</span><span class="val">~£14,250</span></div>
+        <div class="info-row"><span class="key">Status</span><span class="val purple">On Hold · Day 10</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Reply email script</div>
+      <div class="sidebar-card-body">
+        <div class="email-preview">
+          <strong>Subject</strong>
+          RE: Your ISA transfer request — action needed [Case: ISA-00047832]
+        </div>
+        <div class="email-preview" style="margin-top:8px">
+          <strong>Body</strong>
+          Hi, sorry for the delay getting back to you.<br><br>
+          I'd like to proceed with the transfer of around £14,250 from Nationwide.<br><br>
+          Account name: A P Martin<br>
+          Sort code: 20-14-53<br>
+          Account number: 41887623<br><br>
+          Could you let me know if I will lose any interest given the timing? The fixed term matures in June.<br><br>
+          Thanks, Andy
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">What Cognigy extracts</div>
+      <div class="sidebar-card-body">
+        <div class="info-row"><span class="key">Intent</span><span class="val green">Confirmed transfer</span></div>
+        <div class="info-row"><span class="key">Account name</span><span class="val">A P Martin</span></div>
+        <div class="info-row"><span class="key">Sort code</span><span class="val">20-14-53</span></div>
+        <div class="info-row"><span class="key">Account no</span><span class="val">41887623</span></div>
+        <div class="info-row"><span class="key">Amount</span><span class="val">£14,250 (approx)</span></div>
+        <div class="info-row"><span class="key">Secondary query</span><span class="val purple">Interest flag</span></div>
+        <div class="info-row"><span class="key">Sentiment</span><span class="val">Concerned</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Reset demo</div>
+      <div class="sidebar-card-body">
+        <p style="font-size:12px;color:var(--mid-grey);margin-bottom:10px">Reset all step indicators to run the demo again.</p>
+        <button class="reset-btn" onclick="resetDemo()">Reset all steps</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const LAMBDA_CHASER_URL = 'https://liy4l54rzjtv3um3j6gpaadxoi0qdfiq.lambda-url.eu-west-1.on.aws/';
+
+  let step = 1;
+
+  async function triggerChaser() {
+    const btn = document.getElementById('btn-chaser');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span> Triggering...';
+
+    try {
+      const res = await fetch(LAMBDA_CHASER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          triggerType: 'chaser',
+          caseId: 'ISA-00047832',
+          customerEmail: 'Andy.Martin@nice.com',
+          customerName: 'A P Martin',
+          chaserStage: 'Day 10',
+          caseContext: 'ISA transfer from Nationwide to Cynergy Bank'
+        })
+      });
+
+      setStepDone(1, 'Chaser email sent');
+      setStepActive(2, 'Check your inbox now');
+      setStepActive(3, 'Reply when ready');
+      setStepActive(4, 'View Cognigy flow log');
+      setStepActive(5, 'Check for acknowledgement');
+      document.getElementById('btn-complete').style.display = 'inline-flex';
+
+      btn.innerHTML = '✓ Chaser sent';
+      btn.style.background = 'var(--teal)';
+
+    } catch(e) {
+      setStepStatus(1, 'error', 'Error — check Lambda URL');
+      btn.disabled = false;
+      btn.innerHTML = 'Retry ↗';
+    }
+  }
+
+  function setStepDone(num, text) {
+    const circle = document.getElementById('circle-' + num);
+    circle.style.background = 'var(--teal)';
+    circle.style.color = 'white';
+    circle.innerHTML = '✓';
+    const status = document.getElementById('status-' + num);
+    status.className = 'status-badge sent';
+    status.innerHTML = '<div class="status-dot"></div>' + text;
+  }
+
+  function setStepActive(num, text) {
+    const circle = document.getElementById('circle-' + num);
+    circle.style.background = 'var(--purple)';
+    circle.style.color = 'white';
+    const status = document.getElementById('status-' + num);
+    status.className = 'status-badge waiting';
+    status.innerHTML = '<div class="status-dot pulse"></div>' + text;
+  }
+
+  function setStepStatus(num, type, text) {
+    const status = document.getElementById('status-' + num);
+    status.className = 'status-badge ' + type;
+    status.innerHTML = '<div class="status-dot"></div>' + text;
+  }
+
+  function markComplete() {
+    setStepDone(2, 'Email received in inbox');
+    setStepDone(3, 'Reply sent');
+    setStepDone(4, 'Flow log reviewed');
+    setStepDone(5, 'Acknowledgement received');
+    document.getElementById('btn-complete').style.display = 'none';
+  }
+
+  function resetDemo() {
+    location.reload();
+  }
+</script>
+</body>
+</html>
