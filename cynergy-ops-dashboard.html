@@ -1006,7 +1006,7 @@ nav {
 
   // Poll Lambda endpoint for new routing decisions from Cognigy
   const DASHBOARD_ENDPOINT = 'https://liy4l54rzjtv3um3j6gpaadxoi0qdfiq.lambda-url.eu-west-1.on.aws/';
-  let lastTimestamp = null;
+  let lastTimestamp = new Date().toISOString();
 
   async function pollForRoutingDecision() {
     try {
